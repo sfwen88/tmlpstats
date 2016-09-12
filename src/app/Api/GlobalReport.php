@@ -4,8 +4,10 @@
 // that take typed input and return array responses.
 use App;
 use Carbon\Carbon;
+use Illuminate\View\View;
 use TmlpStats as Models;
 use TmlpStats\Api\Base\ApiBase;
+use TmlpStats\Http\Controllers;
 use TmlpStats\Reports\Arrangements;
 
 class GlobalReport extends ApiBase
@@ -226,5 +228,20 @@ class GlobalReport extends ApiBase
                       ->validated()
                       ->byRegion($region)
                       ->get();
+    }
+
+    public function getReportPages(Models\GlobalReport $report, Models\Region $region, $pages)
+    {
+        $output = [];
+        $gr = App::make(Controllers\GlobalReportController::class);
+        foreach ($pages as $page) {
+            $response = $gr->newDispatch($page, $report, $region);
+            if ($response instanceof View) {
+                $response = $response->render();
+            }
+            $output[$page] = $response;
+        }
+
+        return ['pages' => $output];
     }
 }
